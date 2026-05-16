@@ -1,0 +1,14 @@
+{
+  "name": "SafeHer — Women Safety",
+  "short_name": "SafeHer",
+  "description": "Futuristic women safety PWA with SOS, voice activation and live location.",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#0a0612",
+  "theme_color": "#0a0612",
+  "icons": [
+    { "src": "/icons/icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any maskable" }
+  ]
+}
