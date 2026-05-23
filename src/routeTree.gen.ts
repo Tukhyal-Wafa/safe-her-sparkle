@@ -9,15 +9,28 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as ResetPasswordRouteImport } from './routes/reset-password'
+import { Route as ReportsRouteImport } from './routes/reports'
 import { Route as RegisterRouteImport } from './routes/register'
 import { Route as NewsRouteImport } from './routes/news'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as LawsRouteImport } from './routes/laws'
 import { Route as HistoryRouteImport } from './routes/history'
 import { Route as GuideRouteImport } from './routes/guide'
+import { Route as ForgotPasswordRouteImport } from './routes/forgot-password'
 import { Route as ContactsRouteImport } from './routes/contacts'
 import { Route as IndexRouteImport } from './routes/index'
 
+const ResetPasswordRoute = ResetPasswordRouteImport.update({
+  id: '/reset-password',
+  path: '/reset-password',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ReportsRoute = ReportsRouteImport.update({
+  id: '/reports',
+  path: '/reports',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const RegisterRoute = RegisterRouteImport.update({
   id: '/register',
   path: '/register',
@@ -48,6 +61,11 @@ const GuideRoute = GuideRouteImport.update({
   path: '/guide',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ForgotPasswordRoute = ForgotPasswordRouteImport.update({
+  id: '/forgot-password',
+  path: '/forgot-password',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ContactsRoute = ContactsRouteImport.update({
   id: '/contacts',
   path: '/contacts',
@@ -62,80 +80,115 @@ const IndexRoute = IndexRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/contacts': typeof ContactsRoute
+  '/forgot-password': typeof ForgotPasswordRoute
   '/guide': typeof GuideRoute
   '/history': typeof HistoryRoute
   '/laws': typeof LawsRoute
   '/login': typeof LoginRoute
   '/news': typeof NewsRoute
   '/register': typeof RegisterRoute
+  '/reports': typeof ReportsRoute
+  '/reset-password': typeof ResetPasswordRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/contacts': typeof ContactsRoute
+  '/forgot-password': typeof ForgotPasswordRoute
   '/guide': typeof GuideRoute
   '/history': typeof HistoryRoute
   '/laws': typeof LawsRoute
   '/login': typeof LoginRoute
   '/news': typeof NewsRoute
   '/register': typeof RegisterRoute
+  '/reports': typeof ReportsRoute
+  '/reset-password': typeof ResetPasswordRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/contacts': typeof ContactsRoute
+  '/forgot-password': typeof ForgotPasswordRoute
   '/guide': typeof GuideRoute
   '/history': typeof HistoryRoute
   '/laws': typeof LawsRoute
   '/login': typeof LoginRoute
   '/news': typeof NewsRoute
   '/register': typeof RegisterRoute
+  '/reports': typeof ReportsRoute
+  '/reset-password': typeof ResetPasswordRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
     | '/contacts'
+    | '/forgot-password'
     | '/guide'
     | '/history'
     | '/laws'
     | '/login'
     | '/news'
     | '/register'
+    | '/reports'
+    | '/reset-password'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
     | '/contacts'
+    | '/forgot-password'
     | '/guide'
     | '/history'
     | '/laws'
     | '/login'
     | '/news'
     | '/register'
+    | '/reports'
+    | '/reset-password'
   id:
     | '__root__'
     | '/'
     | '/contacts'
+    | '/forgot-password'
     | '/guide'
     | '/history'
     | '/laws'
     | '/login'
     | '/news'
     | '/register'
+    | '/reports'
+    | '/reset-password'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   ContactsRoute: typeof ContactsRoute
+  ForgotPasswordRoute: typeof ForgotPasswordRoute
   GuideRoute: typeof GuideRoute
   HistoryRoute: typeof HistoryRoute
   LawsRoute: typeof LawsRoute
   LoginRoute: typeof LoginRoute
   NewsRoute: typeof NewsRoute
   RegisterRoute: typeof RegisterRoute
+  ReportsRoute: typeof ReportsRoute
+  ResetPasswordRoute: typeof ResetPasswordRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/reset-password': {
+      id: '/reset-password'
+      path: '/reset-password'
+      fullPath: '/reset-password'
+      preLoaderRoute: typeof ResetPasswordRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/reports': {
+      id: '/reports'
+      path: '/reports'
+      fullPath: '/reports'
+      preLoaderRoute: typeof ReportsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/register': {
       id: '/register'
       path: '/register'
@@ -178,6 +231,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof GuideRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/forgot-password': {
+      id: '/forgot-password'
+      path: '/forgot-password'
+      fullPath: '/forgot-password'
+      preLoaderRoute: typeof ForgotPasswordRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/contacts': {
       id: '/contacts'
       path: '/contacts'
@@ -198,13 +258,26 @@ declare module '@tanstack/react-router' {
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   ContactsRoute: ContactsRoute,
+  ForgotPasswordRoute: ForgotPasswordRoute,
   GuideRoute: GuideRoute,
   HistoryRoute: HistoryRoute,
   LawsRoute: LawsRoute,
   LoginRoute: LoginRoute,
   NewsRoute: NewsRoute,
   RegisterRoute: RegisterRoute,
+  ReportsRoute: ReportsRoute,
+  ResetPasswordRoute: ResetPasswordRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { startInstance } from './start.ts'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+    config: Awaited<ReturnType<typeof startInstance.getOptions>>
+  }
+}

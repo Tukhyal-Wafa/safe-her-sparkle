@@ -1,11 +1,11 @@
 import { Link, useRouterState } from "@tanstack/react-router";
-import { Home, Users, Newspaper, Scale, ShieldCheck } from "lucide-react";
+import { Home, Users, FileText, Scale, ShieldCheck } from "lucide-react";
 import { motion } from "framer-motion";
 
 const items = [
   { to: "/", icon: Home, label: "Home" },
   { to: "/contacts", icon: Users, label: "Contacts" },
-  { to: "/news", icon: Newspaper, label: "News" },
+  { to: "/reports", icon: FileText, label: "Reports" },
   { to: "/laws", icon: Scale, label: "Laws" },
   { to: "/guide", icon: ShieldCheck, label: "Guide" },
 ] as const;
@@ -28,7 +28,7 @@ export default function BottomNav() {
                 <motion.span
                   layoutId="navactive"
                   className="absolute inset-0 rounded-2xl"
-                  style={{ background: "linear-gradient(135deg, oklch(0.55 0.25 305 / 0.45), oklch(0.65 0.27 18 / 0.35))" }}
+                  style={{ background: "linear-gradient(135deg, oklch(0.45 0.15 150 / 0.9), oklch(0.55 0.18 155 / 0.8))" }}
                   transition={{ type: "spring", stiffness: 320, damping: 28 }}
                 />
               )}

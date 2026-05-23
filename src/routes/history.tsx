@@ -4,13 +4,17 @@ import { Trash2, MapPin } from "lucide-react";
 import { clearHistory, getHistory, type SOSEvent } from "@/lib/safeher";
 
 export const Route = createFileRoute("/history")({
-  head: () => ({ meta: [{ title: "Emergency History — SafeHer" }, { name: "description", content: "Past SOS activations with timestamps and locations." }] }),
+  head: () => ({ meta: [{ title: "Emergency History — SafeGuard" }, { name: "description", content: "Past SOS activations with timestamps and locations." }] }),
   component: History,
 });
 
 function History() {
   const [list, setList] = useState<SOSEvent[]>([]);
-  useEffect(() => setList(getHistory()), []);
+  
+  useEffect(() => {
+    setList(getHistory());
+  }, []);
+  
   return (
     <div className="app-shell px-5 pt-8">
       <header className="mb-6 flex items-end justify-between">
@@ -30,13 +34,13 @@ function History() {
         <ul className="space-y-3">
           {list.map((e) => (
             <li key={e.id} className="glass rounded-2xl p-4 flex items-center gap-3">
-              <div className="w-10 h-10 rounded-xl flex items-center justify-center text-white" style={{ background: "oklch(0.65 0.27 18)" }}>
+              <div className="w-10 h-10 rounded-xl flex items-center justify-center text-white" style={{ background: "oklch(0.55 0.22 25)" }}>
                 <MapPin className="w-5 h-5" />
               </div>
               <div className="flex-1">
                 <p className="text-sm font-semibold">{new Date(e.ts).toLocaleString()}</p>
                 {e.lat && e.lng ? (
-                  <a className="text-xs text-[oklch(0.78_0.13_350)] underline" target="_blank" rel="noreferrer"
+                  <a className="text-xs text-[oklch(0.45_0.15_150)] underline" target="_blank" rel="noreferrer"
                     href={`https://www.google.com/maps?q=${e.lat},${e.lng}`}>
                     {e.lat.toFixed(4)}, {e.lng.toFixed(4)}
                   </a>

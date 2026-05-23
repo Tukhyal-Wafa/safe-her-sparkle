@@ -1,13 +1,75 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" fill="none">
+  <!-- Background with Gradient -->
   <defs>
-    <radialGradient id="g" cx="35%" cy="30%" r="80%">
-      <stop offset="0%" stop-color="#ff4d6d"/>
-      <stop offset="55%" stop-color="#a020f0"/>
-      <stop offset="100%" stop-color="#0a0612"/>
-    </radialGradient>
+    <linearGradient id="bgGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:oklch(0.45 0.15 150);stop-opacity:1" />
+      <stop offset="50%" style="stop-color:oklch(0.50 0.16 152);stop-opacity:1" />
+      <stop offset="100%" style="stop-color:oklch(0.55 0.18 155);stop-opacity:1" />
+    </linearGradient>
+    <linearGradient id="shieldGradient" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" style="stop-color:#ffffff;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#e8f5e9;stop-opacity:1" />
+    </linearGradient>
+    <filter id="shadow">
+      <feGaussianBlur in="SourceAlpha" stdDeviation="4"/>
+      <feOffset dx="0" dy="2" result="offsetblur"/>
+      <feComponentTransfer>
+        <feFuncA type="linear" slope="0.3"/>
+      </feComponentTransfer>
+      <feMerge>
+        <feMergeNode/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
   </defs>
-  <rect width="512" height="512" rx="112" fill="url(#g)"/>
-  <path d="M256 96l128 48v112c0 88-56 152-128 176-72-24-128-88-128-176V144l128-48z"
-    fill="none" stroke="#fff" stroke-width="22" stroke-linejoin="round"/>
-  <path d="M256 188v104M204 240h104" stroke="#fff" stroke-width="22" stroke-linecap="round"/>
+  
+  <!-- Rounded Background -->
+  <rect width="512" height="512" rx="112" fill="url(#bgGradient)"/>
+  
+  <!-- Shield Shape with Shadow -->
+  <g filter="url(#shadow)">
+    <path d="M256 80 L400 140 L400 270 Q400 370 256 450 Q112 370 112 270 L112 140 Z" 
+          fill="url(#shieldGradient)" 
+          stroke="white" 
+          stroke-width="6"
+          stroke-linejoin="round"/>
+  </g>
+  
+  <!-- Inner Shield Accent -->
+  <path d="M256 110 L370 160 L370 270 Q370 350 256 420 Q142 350 142 270 L142 160 Z" 
+        fill="none" 
+        stroke="oklch(0.45 0.15 150)" 
+        stroke-width="3"
+        opacity="0.2"/>
+  
+  <!-- Heart Symbol -->
+  <g transform="translate(256, 200)">
+    <path d="M0 20 Q0 0 -16 -10 Q-32 -20 -46 -10 Q-60 0 -60 20 Q-60 40 -36 70 L0 110 L36 70 Q60 40 60 20 Q60 0 46 -10 Q32 -20 16 -10 Q0 0 0 20 Z" 
+          fill="oklch(0.55 0.22 25)" 
+          stroke="oklch(0.45 0.18 20)" 
+          stroke-width="3"/>
+  </g>
+  
+  <!-- Medical Cross -->
+  <g transform="translate(256, 320)">
+    <rect x="-10" y="-40" width="20" height="80" rx="4" fill="oklch(0.45 0.15 150)"/>
+    <rect x="-40" y="-10" width="80" height="20" rx="4" fill="oklch(0.45 0.15 150)"/>
+  </g>
+  
+  <!-- Sparkle Effects -->
+  <circle cx="160" cy="160" r="6" fill="white" opacity="0.9">
+    <animate attributeName="opacity" values="0.9;0.4;0.9" dur="2s" repeatCount="indefinite"/>
+  </circle>
+  <circle cx="352" cy="160" r="6" fill="white" opacity="0.9">
+    <animate attributeName="opacity" values="0.4;0.9;0.4" dur="2s" repeatCount="indefinite"/>
+  </circle>
+  <circle cx="180" cy="380" r="4" fill="white" opacity="0.7">
+    <animate attributeName="opacity" values="0.7;0.3;0.7" dur="3s" repeatCount="indefinite"/>
+  </circle>
+  <circle cx="332" cy="380" r="4" fill="white" opacity="0.7">
+    <animate attributeName="opacity" values="0.3;0.7;0.3" dur="3s" repeatCount="indefinite"/>
+  </circle>
+  
+  <!-- Subtle Glow Effect -->
+  <circle cx="256" cy="256" r="200" fill="white" opacity="0.05"/>
 </svg>

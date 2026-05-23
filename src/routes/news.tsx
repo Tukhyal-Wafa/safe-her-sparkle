@@ -3,7 +3,7 @@ import { motion } from "framer-motion";
 import { Newspaper, TrendingUp, Megaphone } from "lucide-react";
 
 export const Route = createFileRoute("/news")({
-  head: () => ({ meta: [{ title: "Safety News — SafeHer" }, { name: "description", content: "Latest women safety news, awareness campaigns, and self defense tips." }] }),
+  head: () => ({ meta: [{ title: "Safety News — SafeGuard" }, { name: "description", content: "Latest women safety news, awareness campaigns, and self defense tips." }] }),
   component: News,
 });
 
@@ -28,7 +28,7 @@ function News() {
             className="glass rounded-2xl p-4">
             <div className="flex items-center gap-2 mb-2">
               <span className="text-[10px] uppercase tracking-widest px-2 py-1 rounded-full"
-                style={{ background: "oklch(0.55 0.25 305 / 0.25)", color: "oklch(0.85 0.12 350)" }}>
+                style={{ background: "oklch(0.45 0.15 150 / 0.25)", color: "oklch(0.35 0.12 150)" }}>
                 {a.tag}
               </span>
               <span className="text-[10px] text-muted-foreground">{a.time} ago</span>

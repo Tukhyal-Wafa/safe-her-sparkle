@@ -31,7 +31,7 @@ export default function FakeCall({ open, onClose }: { open: boolean; onClose: ()
               animate={{ scale: [1, 1.06, 1] }}
               transition={{ duration: 1.6, repeat: Infinity }}
               className="w-32 h-32 rounded-full flex items-center justify-center text-4xl font-display font-bold"
-              style={{ background: "linear-gradient(135deg, oklch(0.55 0.25 305), oklch(0.78 0.13 350))", boxShadow: "0 0 60px oklch(0.55 0.25 305 / 0.6)" }}
+              style={{ background: "linear-gradient(135deg, oklch(0.45 0.15 150), oklch(0.55 0.18 155))", boxShadow: "0 0 60px oklch(0.45 0.15 150 / 0.5)" }}
             >
               M
             </motion.div>
@@ -60,7 +60,7 @@ export default function FakeCall({ open, onClose }: { open: boolean; onClose: ()
                 <motion.div
                   animate={{ scale: [1, 1.1, 1] }} transition={{ duration: 1, repeat: Infinity }}
                   className="w-16 h-16 rounded-full flex items-center justify-center"
-                  style={{ background: "oklch(0.7 0.2 145)", boxShadow: "0 0 36px oklch(0.7 0.2 145 / 0.6)" }}
+                  style={{ background: "oklch(0.5 0.15 150)", boxShadow: "0 0 36px oklch(0.5 0.15 150 / 0.5)" }}
                 >
                   <Phone className="w-7 h-7" />
                 </motion.div>

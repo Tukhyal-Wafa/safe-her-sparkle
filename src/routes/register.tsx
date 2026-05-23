@@ -10,8 +10,8 @@ import { toast } from "sonner";
 export const Route = createFileRoute("/register")({
   head: () => ({
     meta: [
-      { title: "Create account — SafeHer" },
-      { name: "description", content: "Create your SafeHer account in seconds and unlock SOS, voice trigger, and emergency tools." },
+      { title: "Create account — SafeGuard" },
+      { name: "description", content: "Create your SafeGuard account in seconds and unlock SOS, voice trigger, and emergency tools." },
     ],
   }),
   component: RegisterPage,
@@ -32,19 +32,28 @@ function RegisterPage() {
     setError(null);
     if (password.length < 6) { setError("Password must be at least 6 characters"); return; }
     setLoading(true);
-    await new Promise((r) => setTimeout(r, 600));
-    const res = register(name, email, password);
-    setLoading(false);
-    if (!res.ok) { setError(res.error ?? "Registration failed"); return; }
-    toast.success("Welcome to SafeHer");
-    navigate({ to: "/" });
+    
+    try {
+      const res = await register(name, email, password);
+      if (!res.ok) { 
+        setError(res.error ?? "Registration failed"); 
+        setLoading(false);
+        return; 
+      }
+      toast.success("Welcome to SafeGuard");
+      navigate({ to: "/" });
+    } catch (error) {
+      console.error("Registration error:", error);
+      setError("An unexpected error occurred");
+      setLoading(false);
+    }
   };
 
   return (
     <AuthShell
       title="Create your account"
-      subtitle="Join SafeHer and stay protected, anywhere."
-      footer={<>Already have an account? <Link to="/login" className="text-[oklch(0.55_0.22_320)] font-semibold hover:underline">Sign in</Link></>}
+      subtitle="Join SafeGuard and stay protected, anywhere."
+      footer={<>Already have an account? <Link to="/login" className="text-[oklch(0.45_0.15_150)] font-semibold hover:underline">Sign in</Link></>}
     >
       <form onSubmit={onSubmit} className="space-y-4">
         <AuthField label="Full name" type="text" required placeholder="Jane Doe" autoComplete="name"
@@ -65,8 +74,8 @@ function RegisterPage() {
                 style={{
                   background: strength <= 1 ? "oklch(0.7 0.2 30)"
                     : strength <= 2 ? "oklch(0.75 0.18 70)"
-                    : strength <= 3 ? "oklch(0.7 0.18 150)"
-                    : "oklch(0.6 0.2 305)",
+                    : strength <= 3 ? "oklch(0.55 0.18 150)"
+                    : "oklch(0.45 0.15 150)",
                 }}
               />
             </div>
@@ -89,12 +98,12 @@ function RegisterPage() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.46 }}
           className="relative w-full rounded-2xl py-3.5 text-sm font-semibold text-primary-foreground overflow-hidden disabled:opacity-70"
-          style={{ background: "linear-gradient(120deg, oklch(0.55 0.22 320), oklch(0.6 0.22 350), oklch(0.6 0.24 18))", backgroundSize: "200% 200%" }}
+          style={{ background: "linear-gradient(120deg, oklch(0.45 0.15 150), oklch(0.55 0.18 155), oklch(0.50 0.16 152))", backgroundSize: "200% 200%" }}
         >
           <motion.span
             aria-hidden
             className="absolute inset-0"
-            style={{ background: "linear-gradient(120deg, oklch(0.55 0.22 320), oklch(0.6 0.22 350), oklch(0.6 0.24 18))", backgroundSize: "200% 200%" }}
+            style={{ background: "linear-gradient(120deg, oklch(0.45 0.15 150), oklch(0.55 0.18 155), oklch(0.50 0.16 152))", backgroundSize: "200% 200%" }}
             animate={{ backgroundPosition: ["0% 50%", "100% 50%", "0% 50%"] }}
             transition={{ duration: 6, repeat: Infinity }}
           />
@@ -104,7 +113,7 @@ function RegisterPage() {
         </motion.button>
 
         <p className="text-[11px] text-muted-foreground text-center pt-1">
-          By continuing you agree to SafeHer's terms and privacy policy.
+          By continuing you agree to SafeGuard's terms and privacy policy.
         </p>
       </form>
     </AuthShell>

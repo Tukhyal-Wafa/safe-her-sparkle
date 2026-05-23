@@ -3,7 +3,7 @@ import { motion } from "framer-motion";
 import { ShieldCheck, Footprints, Eye, Hand, MapPin, Users } from "lucide-react";
 
 export const Route = createFileRoute("/guide")({
-  head: () => ({ meta: [{ title: "Self Defense Guide — SafeHer" }, { name: "description", content: "Quick self defense tips and escape techniques for everyday safety." }] }),
+  head: () => ({ meta: [{ title: "Self Defense Guide — SafeGuard" }, { name: "description", content: "Quick self defense tips and escape techniques for everyday safety." }] }),
   component: Guide,
 });
 
@@ -28,7 +28,7 @@ function Guide() {
           <motion.div key={i} initial={{ opacity: 0, scale: 0.94 }} animate={{ opacity: 1, scale: 1 }} transition={{ delay: i * 0.05 }}
             className="glass rounded-2xl p-4">
             <div className="w-10 h-10 rounded-xl flex items-center justify-center mb-3"
-              style={{ background: "radial-gradient(circle at 30% 30%, oklch(0.78 0.13 350), oklch(0.35 0.18 295))", boxShadow: "0 0 18px oklch(0.78 0.13 350 / 0.4)" }}>
+              style={{ background: "radial-gradient(circle at 30% 30%, oklch(0.45 0.15 150), oklch(0.35 0.12 150))", boxShadow: "0 0 18px oklch(0.45 0.15 150 / 0.4)" }}>
               <t.icon className="w-5 h-5 text-white" />
             </div>
             <h3 className="font-display font-semibold text-sm">{t.title}</h3>

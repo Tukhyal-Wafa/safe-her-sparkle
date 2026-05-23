@@ -3,7 +3,7 @@ import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/
 import { Phone } from "lucide-react";
 
 export const Route = createFileRoute("/laws")({
-  head: () => ({ meta: [{ title: "Women Rights & Laws — SafeHer" }, { name: "description", content: "Quick reference for women protection laws, helplines, and emergency numbers." }] }),
+  head: () => ({ meta: [{ title: "Women Rights & Laws — SafeGuard" }, { name: "description", content: "Quick reference for women protection laws, helplines, and emergency numbers." }] }),
   component: Laws,
 });
 
@@ -34,7 +34,7 @@ function Laws() {
         {numbers.map((n) => (
           <a key={n.num} href={`tel:${n.num}`} className="glass rounded-2xl p-4 flex items-center gap-3">
             <div className="w-10 h-10 rounded-xl flex items-center justify-center text-white"
-              style={{ background: "linear-gradient(135deg, oklch(0.65 0.27 18), oklch(0.55 0.25 305))" }}>
+              style={{ background: "linear-gradient(135deg, oklch(0.45 0.15 150), oklch(0.55 0.18 155))" }}>
               <Phone className="w-4 h-4" />
             </div>
             <div>
