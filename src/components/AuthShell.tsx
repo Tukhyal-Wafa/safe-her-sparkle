@@ -1,6 +1,6 @@
 import { motion } from "framer-motion";
 import { Shield, Sparkles } from "lucide-react";
-import { Link } from "@tanstack/react-router";
+import { Link } from "react-router-dom";
 
 export default function AuthShell({
   title,
@@ -11,7 +11,7 @@ export default function AuthShell({
   title: string;
   subtitle: string;
   children: React.ReactNode;
-  footer: React.ReactNode;
+  footer?: React.ReactNode;
 }) {
   return (
     <div className="app-shell px-5 pt-10 pb-10">
@@ -23,9 +23,9 @@ export default function AuthShell({
       >
         <Link to="/" className="flex items-center gap-2">
           <div className="w-10 h-10 rounded-2xl flex items-center justify-center glass-strong">
-            <Shield className="w-5 h-5 text-[oklch(0.55_0.22_320)]" />
+            <Shield className="w-5 h-5 text-[oklch(0.45_0.15_150)]" />
           </div>
-          <span className="font-display font-bold text-lg gradient-text">SafeHer</span>
+          <span className="font-display font-bold text-lg gradient-text">SafeGuard</span>
         </Link>
         <span className="text-[10px] uppercase tracking-[0.25em] text-muted-foreground flex items-center gap-1">
           <Sparkles className="w-3 h-3" /> Secure
@@ -41,14 +41,14 @@ export default function AuthShell({
         <motion.div
           aria-hidden
           className="absolute -top-16 -right-16 w-48 h-48 rounded-full opacity-50"
-          style={{ background: "radial-gradient(circle, oklch(0.78 0.15 320 / 0.6), transparent 70%)" }}
+          style={{ background: "radial-gradient(circle, oklch(0.45 0.15 150 / 0.6), transparent 70%)" }}
           animate={{ scale: [1, 1.15, 1], rotate: [0, 30, 0] }}
           transition={{ duration: 10, repeat: Infinity, ease: "easeInOut" }}
         />
         <motion.div
           aria-hidden
           className="absolute -bottom-20 -left-10 w-56 h-56 rounded-full opacity-40"
-          style={{ background: "radial-gradient(circle, oklch(0.82 0.12 355 / 0.6), transparent 70%)" }}
+          style={{ background: "radial-gradient(circle, oklch(0.45 0.15 150 / 0.6), transparent 70%)" }}
           animate={{ scale: [1, 1.2, 1] }}
           transition={{ duration: 12, repeat: Infinity, ease: "easeInOut", delay: 1 }}
         />
@@ -75,14 +75,16 @@ export default function AuthShell({
         </div>
       </motion.div>
 
-      <motion.div
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ delay: 0.5 }}
-        className="text-center text-sm text-muted-foreground mt-6"
-      >
-        {footer}
-      </motion.div>
+      {footer && (
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 0.5 }}
+          className="text-center text-sm text-muted-foreground mt-6"
+        >
+          {footer}
+        </motion.div>
+      )}
     </div>
   );
 }

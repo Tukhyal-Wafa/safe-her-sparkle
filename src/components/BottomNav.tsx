@@ -1,4 +1,4 @@
-import { Link, useRouterState } from "@tanstack/react-router";
+import { Link, useLocation } from "react-router-dom";
 import { Home, Users, FileText, Scale, ShieldCheck } from "lucide-react";
 import { motion } from "framer-motion";
 
@@ -11,8 +11,9 @@ const items = [
 ] as const;
 
 export default function BottomNav() {
-  const path = useRouterState({ select: (s) => s.location.pathname });
-  if (path === "/login" || path === "/register") return null;
+  const location = useLocation();
+  const path = location.pathname;
+  if (path === "/login" || path === "/register" || path === "/forgot-password" || path === "/reset-password") return null;
   return (
     <nav className="fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-[480px] z-40 px-4 pb-4 pt-2 pointer-events-none">
       <div className="glass-strong rounded-3xl px-3 py-2 flex justify-between items-center pointer-events-auto shadow-2xl">
