@@ -14,9 +14,11 @@ A modern, enterprise-grade Progressive Web App (PWA) designed to enhance women's
 - **PDF Reports**: Generate official reports for legal documentation
 
 ### Database Features
-- **Secure Authentication**: User accounts with bcrypt password hashing
-- **Cloud Storage**: All data stored in Vercel Postgres database
-- **Multi-Device Sync**: Access your data from any device
+- **Secure Authentication**: User accounts with session management and password hashing
+- **Password Reset Emails**: Professional email system for password recovery
+- **Remember Me**: Persistent login sessions (24 hours or 30 days)
+- **Cloud Storage**: All data stored securely with localStorage fallback
+- **Multi-Device Access**: Access your data from any device
 - **Persistent Storage**: Never lose your emergency contacts or history
 - **Report Generation**: Create PDF reports with incident details for authorities
 
@@ -70,10 +72,20 @@ A modern, enterprise-grade Progressive Web App (PWA) designed to enhance women's
 
 ## 📚 Documentation
 
+### Deployment & Setup
 - **[QUICK_DEPLOY.md](./QUICK_DEPLOY.md)** - 5-minute deployment guide
 - **[DEPLOYMENT_GUIDE.md](./DEPLOYMENT_GUIDE.md)** - Complete deployment instructions
 - **[DATABASE_SETUP.md](./DATABASE_SETUP.md)** - Database configuration guide
 - **[DATABASE_FEATURES.md](./DATABASE_FEATURES.md)** - Database features overview
+
+### Authentication & Email
+- **[QUICK_START_EMAIL.md](./QUICK_START_EMAIL.md)** - ⚡ 15-minute email setup
+- **[EMAIL_SETUP_GUIDE.md](./EMAIL_SETUP_GUIDE.md)** - Complete email configuration
+- **[AUTHENTICATION_SYSTEM.md](./AUTHENTICATION_SYSTEM.md)** - Auth system documentation
+- **[PASSWORD_RESET_EMAIL_STATUS.md](./PASSWORD_RESET_EMAIL_STATUS.md)** - Implementation details
+
+### Project Status
+- **[IMPLEMENTATION_COMPLETE.md](./IMPLEMENTATION_COMPLETE.md)** - Project completion summary
 - **[INTEGRATION_COMPLETE.md](./INTEGRATION_COMPLETE.md)** - Integration status
 - **[QUICKSTART.md](./QUICKSTART.md)** - Quick start guide
 
@@ -199,9 +211,13 @@ See `DATABASE_FEATURES.md` for complete schema documentation.
 
 ## 📋 Environment Variables
 
-Required for database functionality:
+Required for full functionality:
 
 ```env
+# Email Service (Resend API) - for password reset emails
+RESEND_API_KEY=re_xxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+
+# Database (if using Vercel Postgres - optional)
 POSTGRES_URL="postgres://..."
 POSTGRES_PRISMA_URL="postgres://..."
 POSTGRES_URL_NON_POOLING="postgres://..."
@@ -211,7 +227,14 @@ POSTGRES_PASSWORD="..."
 POSTGRES_DATABASE="..."
 ```
 
-Get these from: Vercel Dashboard → Storage → Your Database → Settings
+**Email Setup (15 minutes):**
+1. Sign up at https://resend.com/signup (free)
+2. Get API key from dashboard
+3. Add to Vercel environment variables
+
+**See `QUICK_START_EMAIL.md` for detailed instructions.**
+
+Get Postgres credentials from: Vercel Dashboard → Storage → Your Database → Settings
 
 See `.env.example` for template.
 

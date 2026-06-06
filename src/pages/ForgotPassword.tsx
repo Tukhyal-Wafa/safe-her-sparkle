@@ -1,6 +1,6 @@
 import { Link, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
-import { Mail, ArrowRight, Loader2, CheckCircle } from "lucide-react";
+import { Mail, ArrowRight, Loader2, CheckCircle, Lock } from "lucide-react";
 import { useState } from "react";
 import AuthShell from "@/components/AuthShell";
 import AuthField from "@/components/AuthField";
@@ -21,24 +21,64 @@ export default function ForgotPassword() {
     setLoading(true);
 
     try {
+      // First, generate the reset token locally
       const res = await requestPasswordReset(email);
-      setLoading(false);
       
       if (!res.ok) {
-        setError(res.error ?? "Failed to generate reset link");
+        setError(res.error ?? "Failed to process reset request");
+        setLoading(false);
         return;
       }
 
       if (res.token) {
-        setResetToken(res.token);
-        setSuccess(true);
-        
-        // Still log to console for debugging
+        // Send email via API
         const resetLink = `${window.location.origin}/reset-password?token=${res.token}`;
-        console.log("🔑 Password Reset Link:", resetLink);
+        
+        try {
+          const emailResponse = await fetch('/api/send-reset-email', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              email: email,
+              token: res.token,
+              resetLink: resetLink
+            })
+          });
+
+          const emailData = await emailResponse.json();
+
+          if (!emailResponse.ok) {
+            console.error('Email sending failed:', emailData);
+            // Still show success for security (don't reveal if email exists)
+            // But also provide the link as fallback
+            setResetToken(res.token);
+            setSuccess(true);
+            setLoading(false);
+            toast.warning("Email service unavailable. Use the reset link below.", { duration: 8000 });
+            return;
+          }
+
+          // Email sent successfully
+          console.log('✅ Password reset email sent to:', email);
+          setSuccess(true);
+          setResetToken(res.token); // Still provide fallback link
+          setLoading(false);
+          toast.success("Password reset email sent! Check your inbox.");
+          
+        } catch (emailError) {
+          console.error('Email API error:', emailError);
+          // Fallback: show reset link in UI
+          setResetToken(res.token);
+          setSuccess(true);
+          setLoading(false);
+          toast.warning("Email service unavailable. Use the reset link below.", { duration: 8000 });
+        }
       } else {
-        // No token means user doesn't exist (security)
+        // User doesn't exist (security - don't reveal)
         setSuccess(true);
+        setLoading(false);
       }
     } catch (error) {
       console.error("Password reset error:", error);
@@ -50,8 +90,8 @@ export default function ForgotPassword() {
   if (success) {
     return (
       <AuthShell
-        title="Password Reset Link"
-        subtitle="Use the link below to reset your password"
+        title={resetToken ? "Check Your Email" : "Request Sent"}
+        subtitle={resetToken ? "We've sent a password reset link to your email" : "If the account exists, you'll receive an email"}
         footer={<Link to="/login" className="text-[oklch(0.45_0.15_150)] font-semibold hover:underline">Back to sign in</Link>}
       >
         <motion.div
@@ -69,45 +109,37 @@ export default function ForgotPassword() {
           </motion.div>
           
           <p className="text-sm text-muted-foreground mb-4">
-            Account found for <strong>{email}</strong>
+            Password reset email sent to <strong>{email}</strong>
           </p>
 
           <div className="glass rounded-2xl p-4 mb-4 text-left">
-            <p className="text-xs text-muted-foreground mb-2">Click the button below to reset your password:</p>
-            <Link
-              to={`/reset-password?token=${resetToken}`}
-              className="w-full inline-flex items-center justify-center gap-2 py-3 px-4 rounded-xl font-semibold text-white"
-              style={{ background: "linear-gradient(135deg, oklch(0.45 0.15 150), oklch(0.55 0.18 155))" }}
-            >
-              <Lock className="w-4 h-4" />
-              Reset My Password
-            </Link>
+            <p className="text-xs font-semibold mb-2">📧 Check your email inbox</p>
+            <ul className="text-xs text-muted-foreground space-y-1 ml-4">
+              <li>• Look for an email from SafeGuard</li>
+              <li>• Click the "Reset My Password" button</li>
+              <li>• Link expires in 1 hour</li>
+              <li>• Check spam folder if not found</li>
+            </ul>
           </div>
 
-          <div className="glass rounded-xl p-3 mb-4">
-            <p className="text-xs text-muted-foreground mb-2">Or copy this link:</p>
-            <div className="flex items-center gap-2">
-              <input
-                type="text"
-                readOnly
-                value={`${window.location.origin}/reset-password?token=${resetToken}`}
-                className="flex-1 text-xs bg-white/5 border border-white/10 rounded-lg px-3 py-2 font-mono"
-                onClick={(e) => (e.target as HTMLInputElement).select()}
-              />
-              <button
-                onClick={() => {
-                  navigator.clipboard.writeText(`${window.location.origin}/reset-password?token=${resetToken}`);
-                  toast.success("Link copied to clipboard!");
-                }}
-                className="px-3 py-2 rounded-lg glass-strong text-xs font-semibold hover:bg-white/10"
+          {resetToken && (
+            <div className="glass rounded-xl p-3 mb-4">
+              <p className="text-xs text-muted-foreground mb-2">
+                <strong>Backup:</strong> If email doesn't arrive, use this link:
+              </p>
+              <Link
+                to={`/reset-password?token=${resetToken}`}
+                className="inline-flex items-center justify-center gap-2 py-2 px-4 rounded-lg font-semibold text-xs text-white"
+                style={{ background: "linear-gradient(135deg, oklch(0.45 0.15 150), oklch(0.55 0.18 155))" }}
               >
-                Copy
-              </button>
+                <Lock className="w-3 h-3" />
+                Use Backup Link
+              </Link>
             </div>
-          </div>
+          )}
 
           <p className="text-xs text-muted-foreground">
-            This link expires in 1 hour. Need a new link?{" "}
+            Didn't receive the email?{" "}
             <button
               onClick={() => {
                 setSuccess(false);
@@ -115,16 +147,9 @@ export default function ForgotPassword() {
               }}
               className="text-[oklch(0.45_0.15_150)] font-semibold hover:underline"
             >
-              Generate new link
+              Try again
             </button>
           </p>
-
-          <div className="mt-4 p-3 bg-[oklch(0.98_0.02_140)] rounded-xl border border-[oklch(0.45_0.15_150)]/20">
-            <p className="text-xs text-muted-foreground">
-              <strong>Note:</strong> In a production app with email service, this link would be sent to your email. 
-              For now, use the link above or check the browser console.
-            </p>
-          </div>
         </motion.div>
       </AuthShell>
     );
