@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Auth System Test</title>
+    <style>
+        body { font-family: Arial, sans-serif; max-width: 800px; margin: 50px auto; padding: 20px; }
+        .section { border: 1px solid #ddd; padding: 20px; margin: 20px 0; border-radius: 8px; }
+        input { padding: 8px; margin: 5px; width: 250px; }
+        button { padding: 10px 20px; margin: 5px; cursor: pointer; }
+        .success { color: green; }
+        .error { color: red; }
+        .info { color: blue; }
+        pre { background: #f5f5f5; padding: 10px; border-radius: 4px; overflow-x: auto; }
+    </style>
+</head>
+<body>
+    <h1>🔐 SafeGuard Auth System Test</h1>
+    
+    <div class="section">
+        <h2>1. Register New User</h2>
+        <input id="regName" type="text" placeholder="Full Name" value="Test User"><br>
+        <input id="regEmail" type="email" placeholder="Email" value="test@example.com"><br>
+        <input id="regPassword" type="password" placeholder="Password" value="test123"><br>
+        <button onclick="testRegister()">Register</button>
+        <div id="regResult"></div>
+    </div>
+
+    <div class="section">
+        <h2>2. Login</h2>
+        <input id="loginEmail" type="email" placeholder="Email" value="test@example.com"><br>
+        <input id="loginPassword" type="password" placeholder="Password" value="test123"><br>
+        <label><input id="loginRemember" type="checkbox"> Remember Me</label><br>
+        <button onclick="testLogin()">Login</button>
+        <div id="loginResult"></div>
+    </div>
+
+    <div class="section">
+        <h2>3. Current User</h2>
+        <button onclick="checkCurrentUser()">Check Current User</button>
+        <button onclick="testLogout()">Logout</button>
+        <div id="userResult"></div>
+    </div>
+
+    <div class="section">
+        <h2>4. Forgot Password</h2>
+        <input id="resetEmail" type="email" placeholder="Email" value="test@example.com"><br>
+        <button onclick="testForgotPassword()">Request Reset</button>
+        <div id="resetResult"></div>
+    </div>
+
+    <div class="section">
+        <h2>5. LocalStorage Data</h2>
+        <button onclick="showStorage()">Show Storage</button>
+        <button onclick="clearStorage()">Clear All Storage</button>
+        <div id="storageResult"></div>
+    </div>
+
+    <script type="module">
+        // Simple password hashing (same as auth.ts)
+        function hashPassword(password) {
+            let hash = 0;
+            for (let i = 0; i < password.length; i++) {
+                const char = password.charCodeAt(i);
+                hash = ((hash << 5) - hash) + char;
+                hash = hash & hash;
+            }
+            return Math.abs(hash).toString(36);
+        }
+
+        function generateUUID() {
+            if (typeof crypto !== 'undefined' && crypto.randomUUID) {
+                return crypto.randomUUID();
+            }
+            return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+                const r = Math.random() * 16 | 0;
+                const v = c === 'x' ? r : (r & 0x3 | 0x8);
+                return v.toString(16);
+            });
+        }
+
+        window.testRegister = function() {
+            const name = document.getElementById('regName').value;
+            const email = document.getElementById('regEmail').value.trim().toLowerCase();
+            const password = document.getElementById('regPassword').value;
+            
+            const users = JSON.parse(localStorage.getItem('safeguard:users') || '[]');
+            
+            if (users.some(u => u.email === email)) {
+                document.getElementById('regResult').innerHTML = '<p class="error">❌ Email already registered</p>';
+                return;
+            }
+            
+            const newUser = {
+                id: generateUUID(),
+                name: name.trim(),
+                email: email,
+                password: hashPassword(password),
+                createdAt: new Date().toISOString()
+            };
+            
+            users.push(newUser);
+            localStorage.setItem('safeguard:users', JSON.stringify(users));
+            
+            // Create session
+            const session = {
+                userId: newUser.id,
+                email: newUser.email,
+                remember: true,
+                expiresAt: Date.now() + (30 * 24 * 60 * 60 * 1000)
+            };
+            localStorage.setItem('safeguard:session', JSON.stringify(session));
+            
+            const userData = { id: newUser.id, name: newUser.name, email: newUser.email };
+            localStorage.setItem('safeguard:user', JSON.stringify(userData));
+            
+            document.getElementById('regResult').innerHTML = `
+                <p class="success">✅ Registration successful!</p>
+                <pre>${JSON.stringify(userData, null, 2)}</pre>
+            `;
+        }
+
+        window.testLogin = function() {
+            const email = document.getElementById('loginEmail').value.trim().toLowerCase();
+            const password = document.getElementById('loginPassword').value;
+            const remember = document.getElementById('loginRemember').checked;
+            
+            const users = JSON.parse(localStorage.getItem('safeguard:users') || '[]');
+            const hashedPassword = hashPassword(password);
+            const user = users.find(u => u.email === email && u.password === hashedPassword);
+            
+            if (!user) {
+                document.getElementById('loginResult').innerHTML = '<p class="error">❌ Invalid email or password</p>';
+                return;
+            }
+            
+            const duration = remember ? (30 * 24 * 60 * 60 * 1000) : (24 * 60 * 60 * 1000);
+            const session = {
+                userId: user.id,
+                email: user.email,
+                remember: remember,
+                expiresAt: Date.now() + duration
+            };
+            localStorage.setItem('safeguard:session', JSON.stringify(session));
+            
+            const userData = { id: user.id, name: user.name, email: user.email };
+            localStorage.setItem('safeguard:user', JSON.stringify(userData));
+            
+            document.getElementById('loginResult').innerHTML = `
+                <p class="success">✅ Login successful!</p>
+                <p class="info">Session duration: ${remember ? '30 days' : '24 hours'}</p>
+                <pre>${JSON.stringify(userData, null, 2)}</pre>
+            `;
+        }
+
+        window.checkCurrentUser = function() {
+            const sessionStr = localStorage.getItem('safeguard:session');
+            if (!sessionStr) {
+                document.getElementById('userResult').innerHTML = '<p class="error">❌ No active session</p>';
+                return;
+            }
+            
+            const session = JSON.parse(sessionStr);
+            if (Date.now() > session.expiresAt) {
+                document.getElementById('userResult').innerHTML = '<p class="error">❌ Session expired</p>';
+                localStorage.removeItem('safeguard:session');
+                localStorage.removeItem('safeguard:user');
+                return;
+            }
+            
+            const userStr = localStorage.getItem('safeguard:user');
+            const user = userStr ? JSON.parse(userStr) : null;
+            
+            if (user) {
+                const timeLeft = Math.floor((session.expiresAt - Date.now()) / (1000 * 60 * 60));
+                document.getElementById('userResult').innerHTML = `
+                    <p class="success">✅ User is logged in</p>
+                    <p class="info">Session expires in: ${timeLeft} hours</p>
+                    <pre>${JSON.stringify(user, null, 2)}</pre>
+                `;
+            } else {
+                document.getElementById('userResult').innerHTML = '<p class="error">❌ No user data found</p>';
+            }
+        }
+
+        window.testLogout = function() {
+            localStorage.removeItem('safeguard:session');
+            localStorage.removeItem('safeguard:user');
+            document.getElementById('userResult').innerHTML = '<p class="success">✅ Logged out successfully</p>';
+        }
+
+        window.testForgotPassword = function() {
+            const email = document.getElementById('resetEmail').value.trim().toLowerCase();
+            const users = JSON.parse(localStorage.getItem('safeguard:users') || '[]');
+            const user = users.find(u => u.email === email);
+            
+            if (!user) {
+                document.getElementById('resetResult').innerHTML = '<p class="info">✅ If account exists, reset link generated</p>';
+                return;
+            }
+            
+            const token = generateUUID();
+            const resetData = {
+                email: email,
+                token: token,
+                expires: Date.now() + 3600000 // 1 hour
+            };
+            
+            const tokens = JSON.parse(localStorage.getItem('safeguard:resetTokens') || '[]');
+            tokens.push(resetData);
+            localStorage.setItem('safeguard:resetTokens', JSON.stringify(tokens));
+            
+            const resetLink = `${window.location.origin}/reset-password?token=${token}`;
+            document.getElementById('resetResult').innerHTML = `
+                <p class="success">✅ Reset token generated!</p>
+                <p class="info">Token expires in 1 hour</p>
+                <p><strong>Reset Link:</strong></p>
+                <pre>${resetLink}</pre>
+                <p><strong>Token:</strong> ${token}</p>
+            `;
+        }
+
+        window.showStorage = function() {
+            const data = {
+                session: JSON.parse(localStorage.getItem('safeguard:session') || 'null'),
+                user: JSON.parse(localStorage.getItem('safeguard:user') || 'null'),
+                users: JSON.parse(localStorage.getItem('safeguard:users') || '[]'),
+                resetTokens: JSON.parse(localStorage.getItem('safeguard:resetTokens') || '[]')
+            };
+            
+            document.getElementById('storageResult').innerHTML = `
+                <h3>Current Storage State:</h3>
+                <pre>${JSON.stringify(data, null, 2)}</pre>
+            `;
+        }
+
+        window.clearStorage = function() {
+            localStorage.removeItem('safeguard:session');
+            localStorage.removeItem('safeguard:user');
+            localStorage.removeItem('safeguard:users');
+            localStorage.removeItem('safeguard:resetTokens');
+            document.getElementById('storageResult').innerHTML = '<p class="success">✅ All storage cleared</p>';
+        }
+
+        // Auto-check on load
+        window.addEventListener('load', function() {
+            checkCurrentUser();
+        });
+    </script>
+</body>
+</html>
