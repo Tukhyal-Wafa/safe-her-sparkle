@@ -12,6 +12,7 @@ export default function ForgotPassword() {
   const [email, setEmail] = useState("");
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
+  const [resetToken, setResetToken] = useState("");
   const [error, setError] = useState<string | null>(null);
 
   const onSubmit = async (e: React.FormEvent) => {
@@ -24,18 +25,20 @@ export default function ForgotPassword() {
       setLoading(false);
       
       if (!res.ok) {
-        setError(res.error ?? "Failed to send reset email");
+        setError(res.error ?? "Failed to generate reset link");
         return;
       }
 
-      setSuccess(true);
-      toast.success("Password reset instructions sent to your email");
-      
-      // For development: show the reset link in console
       if (res.token) {
+        setResetToken(res.token);
+        setSuccess(true);
+        
+        // Still log to console for debugging
         const resetLink = `${window.location.origin}/reset-password?token=${res.token}`;
         console.log("🔑 Password Reset Link:", resetLink);
-        toast.info("Check console for reset link (development mode)", { duration: 10000 });
+      } else {
+        // No token means user doesn't exist (security)
+        setSuccess(true);
       }
     } catch (error) {
       console.error("Password reset error:", error);
@@ -47,14 +50,14 @@ export default function ForgotPassword() {
   if (success) {
     return (
       <AuthShell
-        title="Check your email"
-        subtitle="We've sent password reset instructions to your email address."
+        title="Password Reset Link"
+        subtitle="Use the link below to reset your password"
         footer={<Link to="/login" className="text-[oklch(0.45_0.15_150)] font-semibold hover:underline">Back to sign in</Link>}
       >
         <motion.div
           initial={{ opacity: 0, scale: 0.9 }}
           animate={{ opacity: 1, scale: 1 }}
-          className="text-center py-8"
+          className="text-center py-4"
         >
           <motion.div
             initial={{ scale: 0 }}
@@ -64,18 +67,64 @@ export default function ForgotPassword() {
           >
             <CheckCircle className="w-10 h-10 text-[oklch(0.45_0.15_150)]" />
           </motion.div>
-          <p className="text-muted-foreground mb-6">
-            If an account exists with <strong>{email}</strong>, you will receive password reset instructions shortly.
+          
+          <p className="text-sm text-muted-foreground mb-4">
+            Account found for <strong>{email}</strong>
           </p>
-          <p className="text-sm text-muted-foreground">
-            Didn't receive the email? Check your spam folder or{" "}
+
+          <div className="glass rounded-2xl p-4 mb-4 text-left">
+            <p className="text-xs text-muted-foreground mb-2">Click the button below to reset your password:</p>
+            <Link
+              to={`/reset-password?token=${resetToken}`}
+              className="w-full inline-flex items-center justify-center gap-2 py-3 px-4 rounded-xl font-semibold text-white"
+              style={{ background: "linear-gradient(135deg, oklch(0.45 0.15 150), oklch(0.55 0.18 155))" }}
+            >
+              <Lock className="w-4 h-4" />
+              Reset My Password
+            </Link>
+          </div>
+
+          <div className="glass rounded-xl p-3 mb-4">
+            <p className="text-xs text-muted-foreground mb-2">Or copy this link:</p>
+            <div className="flex items-center gap-2">
+              <input
+                type="text"
+                readOnly
+                value={`${window.location.origin}/reset-password?token=${resetToken}`}
+                className="flex-1 text-xs bg-white/5 border border-white/10 rounded-lg px-3 py-2 font-mono"
+                onClick={(e) => (e.target as HTMLInputElement).select()}
+              />
+              <button
+                onClick={() => {
+                  navigator.clipboard.writeText(`${window.location.origin}/reset-password?token=${resetToken}`);
+                  toast.success("Link copied to clipboard!");
+                }}
+                className="px-3 py-2 rounded-lg glass-strong text-xs font-semibold hover:bg-white/10"
+              >
+                Copy
+              </button>
+            </div>
+          </div>
+
+          <p className="text-xs text-muted-foreground">
+            This link expires in 1 hour. Need a new link?{" "}
             <button
-              onClick={() => setSuccess(false)}
+              onClick={() => {
+                setSuccess(false);
+                setResetToken("");
+              }}
               className="text-[oklch(0.45_0.15_150)] font-semibold hover:underline"
             >
-              try again
+              Generate new link
             </button>
           </p>
+
+          <div className="mt-4 p-3 bg-[oklch(0.98_0.02_140)] rounded-xl border border-[oklch(0.45_0.15_150)]/20">
+            <p className="text-xs text-muted-foreground">
+              <strong>Note:</strong> In a production app with email service, this link would be sent to your email. 
+              For now, use the link above or check the browser console.
+            </p>
+          </div>
         </motion.div>
       </AuthShell>
     );
