@@ -11,6 +11,7 @@ export default function Login() {
   const navigate = useNavigate();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [remember, setRemember] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -20,7 +21,7 @@ export default function Login() {
     setLoading(true);
     
     try {
-      const res = await login(email, password);
+      const res = await login(email, password, remember);
       if (!res.ok) { 
         setError(res.error ?? "Login failed"); 
         setLoading(false);
@@ -69,8 +70,17 @@ export default function Login() {
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ delay: 0.36 }}
-          className="flex justify-end"
+          className="flex items-center justify-between"
         >
+          <label className="flex items-center gap-2 cursor-pointer">
+            <input
+              type="checkbox"
+              checked={remember}
+              onChange={(e) => setRemember(e.target.checked)}
+              className="w-4 h-4 rounded border-2 border-[oklch(0.45_0.15_150)] text-[oklch(0.45_0.15_150)] focus:ring-2 focus:ring-[oklch(0.45_0.15_150)] focus:ring-offset-0"
+            />
+            <span className="text-sm text-muted-foreground">Remember me for 30 days</span>
+          </label>
           <Link
             to="/forgot-password"
             className="text-xs text-[oklch(0.45_0.15_150)] font-semibold hover:underline"

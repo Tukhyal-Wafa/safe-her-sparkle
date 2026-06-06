@@ -24,13 +24,13 @@ export default function Register() {
     setLoading(true);
     
     try {
-      const res = await register(name, email, password);
+      const res = await register(name, email, password, true); // Auto remember on registration
       if (!res.ok) { 
         setError(res.error ?? "Registration failed"); 
         setLoading(false);
         return; 
       }
-      toast.success("Welcome to SafeGuard");
+      toast.success("Welcome to SafeGuard! You're now logged in.");
       navigate("/");
     } catch (error) {
       console.error("Registration error:", error);

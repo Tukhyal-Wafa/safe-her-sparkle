@@ -1,9 +1,14 @@
 export type User = { id: string; name: string; email: string };
-type StoredUser = User & { password: string };
+type StoredUser = User & { password: string; createdAt: string };
+type Session = { userId: string; email: string; remember: boolean; expiresAt: number };
 
 const K_USER = "safeguard:user";
 const K_USERS = "safeguard:users";
+const K_SESSION = "safeguard:session";
 const K_RESET_TOKENS = "safeguard:resetTokens";
+
+const SESSION_DURATION = 24 * 60 * 60 * 1000; // 24 hours
+const REMEMBER_DURATION = 30 * 24 * 60 * 60 * 1000; // 30 days
 
 const isClient = () => typeof window !== "undefined";
 
@@ -20,9 +25,102 @@ function generateUUID(): string {
   });
 }
 
+// Simple password hashing (for client-side only - in production use bcrypt on server)
+function hashPassword(password: string): string {
+  // Simple hash for demo - in production, use proper server-side hashing
+  let hash = 0;
+  for (let i = 0; i < password.length; i++) {
+    const char = password.charCodeAt(i);
+    hash = ((hash << 5) - hash) + char;
+    hash = hash & hash;
+  }
+  return Math.abs(hash).toString(36);
+}
+
+// Session management
+function createSession(userId: string, email: string, remember: boolean): void {
+  if (!isClient()) return;
+  
+  const duration = remember ? REMEMBER_DURATION : SESSION_DURATION;
+  const session: Session = {
+    userId,
+    email,
+    remember,
+    expiresAt: Date.now() + duration
+  };
+  
+  localStorage.setItem(K_SESSION, JSON.stringify(session));
+}
+
+function getSession(): Session | null {
+  if (!isClient()) return null;
+  
+  try {
+    const sessionStr = localStorage.getItem(K_SESSION);
+    if (!sessionStr) return null;
+    
+    const session: Session = JSON.parse(sessionStr);
+    
+    // Check if session expired
+    if (Date.now() > session.expiresAt) {
+      clearSession();
+      return null;
+    }
+    
+    // Auto-extend session if remember is true
+    if (session.remember && session.expiresAt - Date.now() < REMEMBER_DURATION / 2) {
+      createSession(session.userId, session.email, true);
+    }
+    
+    return session;
+  } catch {
+    return null;
+  }
+}
+
+function clearSession(): void {
+  if (!isClient()) return;
+  localStorage.removeItem(K_SESSION);
+  localStorage.removeItem(K_USER);
+}
+
 export function currentUser(): User | null {
   if (!isClient()) return null;
-  try { return JSON.parse(localStorage.getItem(K_USER) || "null"); } catch { return null; }
+  
+  // Check if there's a valid session
+  const session = getSession();
+  if (!session) {
+    clearSession();
+    return null;
+  }
+  
+  // Try to get user from cache
+  try {
+    const userStr = localStorage.getItem(K_USER);
+    if (userStr) {
+      const user: User = JSON.parse(userStr);
+      if (user.id === session.userId) {
+        return user;
+      }
+    }
+  } catch {}
+  
+  // Fetch user from database
+  const users = getLocalUsers();
+  const user = users.find(u => u.id === session.userId);
+  
+  if (user) {
+    const userData: User = { id: user.id, name: user.name, email: user.email };
+    localStorage.setItem(K_USER, JSON.stringify(userData));
+    return userData;
+  }
+  
+  clearSession();
+  return null;
+}
+
+export function isAuthenticated(): boolean {
+  return currentUser() !== null;
 }
 
 // LocalStorage fallback functions
@@ -36,14 +134,25 @@ function saveLocalUsers(users: StoredUser[]) {
   localStorage.setItem(K_USERS, JSON.stringify(users));
 }
 
-export async function register(name: string, email: string, password: string): Promise<{ ok: boolean; error?: string }> {
+export async function register(name: string, email: string, password: string, remember = true): Promise<{ ok: boolean; error?: string }> {
   if (!isClient()) return { ok: false, error: "Unavailable" };
   
   try {
     const emailLower = email.trim().toLowerCase();
     
-    // For now, use localStorage directly
-    // Database integration will be enabled when environment is properly configured
+    // Validate inputs
+    if (!name || name.length < 2) {
+      return { ok: false, error: "Name must be at least 2 characters" };
+    }
+    
+    if (!email || !email.includes('@')) {
+      return { ok: false, error: "Please enter a valid email" };
+    }
+    
+    if (!password || password.length < 6) {
+      return { ok: false, error: "Password must be at least 6 characters" };
+    }
+    
     const users = getLocalUsers();
     if (users.some((u) => u.email === emailLower)) {
       return { ok: false, error: "Email already registered" };
@@ -53,14 +162,18 @@ export async function register(name: string, email: string, password: string): P
       id: generateUUID(),
       name: name.trim(),
       email: emailLower,
-      password: password // In production with database, this will be hashed
+      password: hashPassword(password),
+      createdAt: new Date().toISOString()
     };
     
     users.push(newUser);
     saveLocalUsers(users);
     
-    const userData = { id: newUser.id, name: newUser.name, email: newUser.email };
+    const userData: User = { id: newUser.id, name: newUser.name, email: newUser.email };
     localStorage.setItem(K_USER, JSON.stringify(userData));
+    
+    // Create session
+    createSession(newUser.id, newUser.email, remember);
     
     return { ok: true };
   } catch (error) {
@@ -69,22 +182,29 @@ export async function register(name: string, email: string, password: string): P
   }
 }
 
-export async function login(email: string, password: string): Promise<{ ok: boolean; error?: string }> {
+export async function login(email: string, password: string, remember = false): Promise<{ ok: boolean; error?: string }> {
   if (!isClient()) return { ok: false, error: "Unavailable" };
   
   try {
     const emailLower = email.trim().toLowerCase();
     
-    // Use localStorage
+    if (!email || !password) {
+      return { ok: false, error: "Please enter email and password" };
+    }
+    
     const users = getLocalUsers();
-    const user = users.find((u) => u.email === emailLower && u.password === password);
+    const hashedPassword = hashPassword(password);
+    const user = users.find((u) => u.email === emailLower && u.password === hashedPassword);
     
     if (!user) {
       return { ok: false, error: "Invalid email or password" };
     }
     
-    const userData = { id: user.id, name: user.name, email: user.email };
+    const userData: User = { id: user.id, name: user.name, email: user.email };
     localStorage.setItem(K_USER, JSON.stringify(userData));
+    
+    // Create session
+    createSession(user.id, user.email, remember);
     
     return { ok: true };
   } catch (error) {
@@ -95,7 +215,12 @@ export async function login(email: string, password: string): Promise<{ ok: bool
 
 export function logout() {
   if (!isClient()) return;
-  localStorage.removeItem(K_USER);
+  clearSession();
+}
+
+// Check if user session is still valid
+export function checkSession(): boolean {
+  return getSession() !== null;
 }
 
 // Forgot Password Functions
@@ -137,6 +262,10 @@ export async function requestPasswordReset(email: string): Promise<{ ok: boolean
 export async function resetPassword(token: string, newPassword: string): Promise<{ ok: boolean; error?: string }> {
   if (!isClient()) return { ok: false, error: "Unavailable" };
   
+  if (!newPassword || newPassword.length < 6) {
+    return { ok: false, error: "Password must be at least 6 characters" };
+  }
+  
   // Get reset tokens
   const tokens = JSON.parse(localStorage.getItem(K_RESET_TOKENS) || "[]");
   const resetData = tokens.find((t: any) => t.token === token);
@@ -157,12 +286,18 @@ export async function resetPassword(token: string, newPassword: string): Promise
     return { ok: false, error: "User not found" };
   }
   
-  users[userIndex].password = newPassword; // In production, hash this
+  users[userIndex].password = hashPassword(newPassword);
   saveLocalUsers(users);
   
   // Remove used token
   const updatedTokens = tokens.filter((t: any) => t.token !== token);
   localStorage.setItem(K_RESET_TOKENS, JSON.stringify(updatedTokens));
+  
+  // Clear any existing sessions for this user
+  const session = getSession();
+  if (session && session.email === resetData.email) {
+    clearSession();
+  }
   
   return { ok: true };
 }
