@@ -34,6 +34,10 @@ export default function ForgotPassword() {
         // Send email via API
         const resetLink = `${window.location.origin}/reset-password?token=${res.token}`;
         
+        console.log('🔄 Sending password reset email...');
+        console.log('Email:', email);
+        console.log('Reset Link:', resetLink);
+        
         try {
           const emailResponse = await fetch('/api/send-reset-email', {
             method: 'POST',
@@ -47,10 +51,16 @@ export default function ForgotPassword() {
             })
           });
 
+          console.log('📨 Email API Response Status:', emailResponse.status);
+          
           const emailData = await emailResponse.json();
+          console.log('📨 Email API Response Data:', emailData);
 
           if (!emailResponse.ok) {
-            console.error('Email sending failed:', emailData);
+            console.error('❌ Email sending failed:', emailData);
+            console.error('Status Code:', emailResponse.status);
+            console.error('Error Details:', JSON.stringify(emailData, null, 2));
+            
             // Still show success for security (don't reveal if email exists)
             // But also provide the link as fallback
             setResetToken(res.token);
@@ -61,14 +71,18 @@ export default function ForgotPassword() {
           }
 
           // Email sent successfully
-          console.log('✅ Password reset email sent to:', email);
+          console.log('✅ Password reset email sent successfully!');
+          console.log('Email ID:', emailData.emailId);
           setSuccess(true);
           setResetToken(res.token); // Still provide fallback link
           setLoading(false);
           toast.success("Password reset email sent! Check your inbox.");
           
         } catch (emailError) {
-          console.error('Email API error:', emailError);
+          console.error('❌ Email API error:', emailError);
+          console.error('Error details:', emailError.message);
+          console.error('Error stack:', emailError.stack);
+          
           // Fallback: show reset link in UI
           setResetToken(res.token);
           setSuccess(true);

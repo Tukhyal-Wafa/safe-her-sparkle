@@ -2,6 +2,16 @@
 // This runs on Vercel's servers, not in the browser
 
 export default async function handler(req, res) {
+  // Add CORS headers
+  res.setHeader('Access-Control-Allow-Origin', '*');
+  res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+
+  // Handle OPTIONS request for CORS preflight
+  if (req.method === 'OPTIONS') {
+    return res.status(200).end();
+  }
+
   // Only allow POST requests
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed' });
@@ -11,6 +21,7 @@ export default async function handler(req, res) {
 
   // Validate inputs
   if (!email || !token || !resetLink) {
+    console.error('Missing required fields:', { email: !!email, token: !!token, resetLink: !!resetLink });
     return res.status(400).json({ error: 'Missing required fields' });
   }
 
@@ -18,9 +29,14 @@ export default async function handler(req, res) {
   const RESEND_API_KEY = process.env.RESEND_API_KEY;
   
   if (!RESEND_API_KEY) {
-    console.error('RESEND_API_KEY not configured');
-    return res.status(500).json({ error: 'Email service not configured' });
+    console.error('RESEND_API_KEY not configured in environment variables');
+    return res.status(500).json({ 
+      error: 'Email service not configured',
+      hint: 'Add RESEND_API_KEY to Vercel environment variables'
+    });
   }
+
+  console.log('Attempting to send email to:', email);
 
   try {
     // Send email using Resend API
@@ -153,14 +169,15 @@ export default async function handler(req, res) {
     const data = await response.json();
 
     if (!response.ok) {
-      console.error('Resend API error:', data);
+      console.error('Resend API error:', JSON.stringify(data, null, 2));
       return res.status(500).json({ 
         error: 'Failed to send email',
-        details: data 
+        details: data,
+        statusCode: response.status
       });
     }
 
-    console.log('Email sent successfully:', data);
+    console.log('✅ Email sent successfully:', data.id);
     
     return res.status(200).json({ 
       success: true,
@@ -172,7 +189,8 @@ export default async function handler(req, res) {
     console.error('Error sending email:', error);
     return res.status(500).json({ 
       error: 'Failed to send email',
-      message: error.message 
+      message: error.message,
+      stack: process.env.NODE_ENV === 'development' ? error.stack : undefined
     });
   }
 }
